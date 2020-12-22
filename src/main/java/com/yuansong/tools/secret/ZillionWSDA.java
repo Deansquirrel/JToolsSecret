@@ -99,7 +99,6 @@ public class ZillionWSDA {
 			throw new Exception("解密失败。（校验错误）");
 		}
 		
-//		logger.debug(new String(plainByte, "GBK"));
 		return new String(plainByte, "GBK");
 	}
 	
