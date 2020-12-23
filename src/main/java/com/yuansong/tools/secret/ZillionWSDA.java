@@ -62,38 +62,47 @@ public class ZillionWSDA {
 	 * @return 解密后的原文
 	 */
 	public static String DecryptFromBase64Format(String cipherText, String key) throws Exception {
-		
-		byte[] byteCipherText = decoder.decode(cipherText);
-		
-		byte[] resultByte = new byte[byteCipherText.length - 4];
-		System.arraycopy(byteCipherText, 4, resultByte, 0, resultByte.length);		
-		byte[] rndKey = new byte[4];
-		System.arraycopy(byteCipherText, 0, rndKey, 0, 4);
-		
-		for(int i = 0; i < resultByte.length; i++) {
-			resultByte[i] = getXor(resultByte[i], rndKey[i % rndKey.length]);
+		byte[] checkKeyByte, keyByte, resultByte, sMd5Check, sMd5, plainByte;
+		try {
+			byte[] byteCipherText = decoder.decode(cipherText);
+			
+			resultByte = new byte[byteCipherText.length - 4];
+			System.arraycopy(byteCipherText, 4, resultByte, 0, resultByte.length);		
+			byte[] rndKey = new byte[4];
+			System.arraycopy(byteCipherText, 0, rndKey, 0, 4);
+			
+			for(int i = 0; i < resultByte.length; i++) {
+				resultByte[i] = getXor(resultByte[i], rndKey[i % rndKey.length]);
+			}
+			
+			keyByte = key.getBytes("GBK");
+			for(int i = 0; i < resultByte.length; i++) {
+				resultByte[i] = getXor(resultByte[i], keyByte[i % keyByte.length]);
+			}
+			
+			checkKeyByte = new byte[keyByte.length];
+			System.arraycopy(resultByte, 16, checkKeyByte, 0, checkKeyByte.length);
+						
+		} catch(Exception e) {
+			throw new Exception("解密失败。（非法文本）");
 		}
-		
-		byte[] keyByte = key.getBytes("GBK");
-		for(int i = 0; i < resultByte.length; i++) {
-			resultByte[i] = getXor(resultByte[i], keyByte[i % keyByte.length]);
-		}
-		
-		byte[] checkKeyByte = new byte[keyByte.length];
-		System.arraycopy(resultByte, 16, checkKeyByte, 0, checkKeyByte.length);
 		
 		if(!Arrays.equals(checkKeyByte, keyByte)) {
 			throw new Exception("解密失败。（密码非法）");
 		}
 		
-		byte[] sMd5Check = new byte[16];
-		System.arraycopy(resultByte, 0, sMd5Check, 0, sMd5Check.length);
-		byte[] plainByte = new byte[resultByte.length - (16 + keyByte.length)];
-		System.arraycopy(resultByte, 16 + keyByte.length, plainByte, 0, plainByte.length);
-		
-		byte[] byteTemp = byteMerger(keyByte, plainByte);
-		
-		byte[] sMd5 = hexStr2Bytes(CommonTool.Md5Encode(byteTemp)) ;
+		try {
+			sMd5Check = new byte[16];
+			System.arraycopy(resultByte, 0, sMd5Check, 0, sMd5Check.length);
+			plainByte = new byte[resultByte.length - (16 + keyByte.length)];
+			System.arraycopy(resultByte, 16 + keyByte.length, plainByte, 0, plainByte.length);
+			
+			byte[] byteTemp = byteMerger(keyByte, plainByte);
+			
+			sMd5 = hexStr2Bytes(CommonTool.Md5Encode(byteTemp)) ;			
+		} catch(Exception e) {
+			throw new Exception("解密失败。（非法文本）");
+		}
 		
 		if(!Arrays.equals(sMd5Check, sMd5)) {
 			throw new Exception("解密失败。（校验错误）");
