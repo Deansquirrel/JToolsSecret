@@ -3,8 +3,8 @@ package com.yuansong.tools.secret;
 import java.util.Arrays;
 import java.util.Base64;
 
-import com.yuansong.tools.common.CommonTool;
-import com.yuansong.tools.common.MathTool;
+import com.github.deansquirrel.tools.common.CommonTool;
+import com.github.deansquirrel.tools.common.MathTool;
 
 public class ZillionWSDA {
 	
